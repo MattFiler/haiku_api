@@ -1,11 +1,10 @@
+#!/usr/bin/env python3
 import random
-from botocore.vendored import requests
-
-# import requests # for local development
 import time
 from typing import Tuple
 import json
-
+import cgi
+import requests
 
 DATAMUSE_FULL_APIBASE = "https://api.datamuse.com/words?md=sp&sp=s*"
 DATAMUSE_APIBASE = "https://api.datamuse.com/words?md=sp"
@@ -218,27 +217,26 @@ class HaikuGenerator(PoemGenerator):
 
 
 def main():
-    """ To run this python script locally:
-    format:  $ python3 haiku_generator.py <keyword> <letter>
-    example: $ python3 haiku_generator.py carrot m
-    """
     import sys
+    
+    keyword = ""
+    startswith = ""
+    
+    fs = cgi.FieldStorage()
+    for key in fs.keys():
+        if key == "keyword":
+            keyword = fs[key].value
+        if key == "starts_with":
+            startswith = fs[key].value
 
-    args = sys.argv[1:]
-    starts_with = ""
-
-    if not args:
+    if keyword == "":
         print("Haiku generator usage: <keyword: required> <starts with letter: optional>")
         sys.exit(1)
 
-    keyword = args[0]
-    if len(args) > 1:
-        starts_with = args[1]
-
-    pg = HaikuGenerator(word=keyword, starts_with=starts_with)
-
-    print(pg.build_haiku())
+    pg = HaikuGenerator(word=keyword, starts_with=startswith)
+    print(json.dumps(pg.build_haiku()))
 
 
 if __name__ == "__main__":
+    print("Content-type: application/json\n")
     main()
